@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+// Import React Player with all needed players
 import ReactPlayer from 'react-player';
+import 'react-player/youtube';
+import 'react-player/vimeo';
+import 'react-player/dailymotion';
+import 'react-player/file';
+
 import { 
   ArrowLeft, 
   Volume2, 
@@ -16,10 +22,12 @@ import {
   Pause
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
-import { fetchVideoById } from '../../store/slices/videosSlice';
+import { fetchVideoById, setCurrentVideo } from '../../store/slices/videosSlice';
 import { fetchComments, createComment } from '../../store/slices/commentsSlice';
 import { setFullscreen, setPlaybackSpeed, setVolume, setShowEditModal, setSelectedVideoId } from '../../store/slices/uiSlice';
 import { CreateCommentRequest } from '../../types';
+import { getUserId } from '../../utils/environment';
+import { getVideoType, fixVideoUrl } from '../../utils/videoHelpers';
 import {
   PlayerContainer,
   PlayerHeader,
@@ -108,41 +116,111 @@ export const VideoPlayer: React.FC = () => {
       dispatch(setShowEditModal(true));
     }
   };
-
   const handlePlayPause = () => {
-    setIsPlaying(!isPlaying);
-  };
-
-  const handlePlayerError = (error: any) => {
+    // Toggle playing state and log for debugging
+    const newPlayingState = !isPlaying;
+    console.log('Play button clicked, setting isPlaying to:', newPlayingState);
+    console.log('Current video URL:', currentVideo?.video_url);
+    setIsPlaying(newPlayingState);
+  };  const handlePlayerError = (error: any) => {
     console.error('Video player error:', error);
-    setPlayerError('Failed to load video. Please check the video URL.');
+    
+    // Try to determine the type of error for more helpful messages
+    let errorMessage = 'Failed to load video. ';
+    const videoType = currentVideo?.video_url ? getVideoType(currentVideo.video_url) : 'unknown';
+    
+    if (error && typeof error === 'object') {
+      // YouTube specific errors
+      if (videoType === 'youtube') {
+        if (error.data === 101 || error.data === 150) {
+          errorMessage += 'This video cannot be played because embedding has been disabled by the owner.';
+        } else if (error.data === 2) {
+          errorMessage += 'Invalid YouTube video ID or URL format.';
+        } else if (error.data === 5) {
+          errorMessage += 'This YouTube video cannot be played in your browser.';
+        } else if (error.data === 100) {
+          errorMessage += 'This YouTube video has been removed or is private.';
+        } else {
+          errorMessage += `YouTube player error (${error.data || 'unknown'}). Please try a different video.`;
+        }
+      } 
+      // Vimeo specific errors
+      else if (videoType === 'vimeo') {
+        errorMessage += 'Vimeo video playback error. The video may be private or have embedding disabled.';
+      }
+      // Dailymotion specific errors
+      else if (videoType === 'dailymotion') {
+        errorMessage += 'Dailymotion video playback error. The video may be private or region-restricted.';
+      }
+      // File specific errors
+      else if (videoType === 'file') {
+        errorMessage += 'Media file playback error. The file may be corrupted or in an unsupported format.';
+      }
+      // Generic error
+      else {
+        errorMessage += 'Please check the video URL or try a different browser.';
+      }
+    } else {
+      errorMessage += 'Please check the video URL or try a different browser.';
+    }
+    
+    setPlayerError(errorMessage);
+    
+    // Reset playing state on error
+    setIsPlaying(false);
   };
 
   const handlePlayerReady = () => {
+    console.log('Player ready event fired');
     setPlayerError(null);
-    setIsPlaying(true);
+    
+    // Set isPlaying to true to auto-play when ready
+    // Only if not already playing
+    if (!isPlaying) {
+      console.log('Setting isPlaying to true after player ready');
+      setIsPlaying(true);
+    }
+    
     if (currentVideo?.video_url) {
       console.log('Video ready to play:', currentVideo.video_url);
     }
-  };
-
-  // Debug video URL
+  };  // Validate and fix video URL if needed
   useEffect(() => {
     if (currentVideo?.video_url) {
       console.log('Current video URL:', currentVideo.video_url);
-      console.log('ReactPlayer can play this URL:', ReactPlayer.canPlay(currentVideo.video_url));
+      const canPlay = ReactPlayer.canPlay(currentVideo.video_url);
+      console.log('ReactPlayer can play this URL:', canPlay);
+      
+      if (canPlay) {
+        // If ReactPlayer can play the URL, clear any previous error
+        setPlayerError(null);
+      } else {
+        // Try to fix the URL using our utility
+        const fixedUrl = fixVideoUrl(currentVideo.video_url);
+        
+        if (fixedUrl !== currentVideo.video_url) {
+          console.log(`Attempting to fix URL: ${currentVideo.video_url} → ${fixedUrl}`);
+          dispatch(setCurrentVideo({
+            ...currentVideo,
+            video_url: fixedUrl
+          }));
+          return; // Exit early as we're updating the state which will trigger this effect again
+        }
+        
+        // If we couldn't fix it, show an error
+        setPlayerError('This video URL format is not supported. Try a YouTube, Vimeo, Dailymotion URL or direct video file (.mp4, .webm, .ogg).');
+      }
     }
-  }, [currentVideo]);
+  }, [currentVideo, dispatch]);
 
   const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!commentText.trim() || !id) return;
 
     setSubmittingComment(true);
-    try {
-      const commentData: CreateCommentRequest = {
+    try {      const commentData: CreateCommentRequest = {
         video_id: id,
-        user_id: 'anonymous_user', // You can make this dynamic
+        user_id: getUserId(),
         content: commentText.trim(),
       };
       
@@ -227,47 +305,122 @@ export const VideoPlayer: React.FC = () => {
             {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
           </ControlButton>
         </PlayerControls>
-      </PlayerHeader>
-
-      {!isFullscreen && (
-        <VideoUrlDisplay>
-          Video URL: {currentVideo.video_url ? (
-            <a href={currentVideo.video_url} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'underline' }}>
-              {currentVideo.video_url}
-            </a>
+      </PlayerHeader>      {/* Always show video URL regardless of fullscreen state */}      <VideoUrlDisplay>
+        <div>
+          {currentVideo.video_url ? (
+            <>
+              <strong>Source:</strong> {getVideoType(currentVideo.video_url).toUpperCase()} | <strong>URL:</strong>{' '}
+              <a href={currentVideo.video_url} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'underline' }}>
+                {currentVideo.video_url}
+              </a>
+            </>
           ) : (
             <span style={{ color: '#ff6b6b' }}>No video URL provided</span>
           )}
-        </VideoUrlDisplay>
-      )}
+        </div>
+      </VideoUrlDisplay>
 
-      <PlayerWrapper $isFullscreen={isFullscreen}>
-        {playerError ? (
+      <PlayerWrapper $isFullscreen={isFullscreen}>        {playerError ? (
           <ErrorContainer>
-            {playerError}
+            <h3>{playerError}</h3>
+            <p>Try the following:</p>
+            <ul>
+              <li>Make sure the URL format is correct for the platform:</li>
+              <ul>
+                <li>YouTube: https://www.youtube.com/watch?v=VIDEO_ID</li>
+                <li>Vimeo: https://vimeo.com/VIDEO_ID</li>
+                <li>Dailymotion: https://www.dailymotion.com/video/VIDEO_ID</li>
+                <li>Direct files: Link ending with .mp4, .webm, or .ogg</li>
+              </ul>
+              <li>Check if the video is available in your region</li>
+              <li>Ensure the video allows embedding (some creators restrict this)</li>
+              <li>Try opening the URL directly in a browser to confirm it works</li>
+            </ul>
+            <p>Current URL: <a href={currentVideo.video_url} target="_blank" rel="noopener noreferrer">{currentVideo.video_url}</a></p>
           </ErrorContainer>
-        ) : (
-          <ReactPlayer
+        ) : (<ReactPlayer
             url={currentVideo.video_url}
             width="100%"
             height="100%"
-            controls
+            controls={true}
             playing={isPlaying}
             playbackRate={playbackSpeed}
             volume={volume}
             muted={isMuted}
             onError={handlePlayerError}
             onReady={handlePlayerReady}
+            onPlay={() => console.log('Video playback started')}
+            onPause={() => console.log('Video playback paused')}
             config={{
               youtube: {
-                playerVars: { showinfo: 1 }
+                playerVars: { 
+                  showinfo: 1,
+                  origin: window.location.origin,
+                  autoplay: isPlaying ? 1 : 0,
+                  iv_load_policy: 3,
+                  modestbranding: 1,
+                  enablejsapi: 1,
+                  rel: 0, // Don't show related videos
+                  fs: 1 // Allow fullscreen
+                }
+              },
+              vimeo: {
+                playerOptions: {
+                  autoplay: isPlaying,
+                  muted: isMuted,
+                  controls: true,
+                  responsive: true,
+                  dnt: true // Do not track
+                }
+              },
+              dailymotion: {
+                params: {
+                  controls: true,
+                  autoplay: isPlaying,
+                  mute: isMuted
+                }
+              },              file: {
+                attributes: {
+                  controlsList: 'nodownload',
+                  autoPlay: isPlaying,
+                  muted: isMuted
+                },
+                forceVideo: true,
+                tracks: []
               }
             }}
           />
-        )}
-        {!isPlaying && (
-          <PlayButtonOverlay onClick={handlePlayPause}>
-            <Play size={48} color="white" />
+        )}        {/* Always show play button overlay if not playing or if there's an error */}
+        {(!isPlaying || playerError) && (
+          <PlayButtonOverlay 
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              console.log('Play button overlay clicked');
+              if (!playerError) {
+                handlePlayPause();
+              } else {
+                // If there's an error, try reloading the video
+                setPlayerError(null);
+                // Small delay before attempting to play again
+                setTimeout(() => {
+                  console.log('Attempting to reload video after error');
+                  setIsPlaying(true);
+                }, 300);
+              }
+            }}
+            role="button"
+            aria-label="Play video"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handlePlayPause();
+              }
+            }}
+          >
+            <Play size={48} color="white" strokeWidth={1.5} />
+            {playerError && <div style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>Try Again</div>}
           </PlayButtonOverlay>
         )}
       </PlayerWrapper>

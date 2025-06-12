@@ -7,8 +7,9 @@ import {
   GetVideosResponse,
   GetCommentsResponse,
 } from '../types';
+import { getApiBaseUrl } from '../utils/environment';
 
-const API_BASE_URL = 'https://take-home-assessment-423502.uc.r.appspot.com/api';
+const API_BASE_URL = getApiBaseUrl();
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

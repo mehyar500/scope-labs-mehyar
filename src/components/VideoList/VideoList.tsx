@@ -21,8 +21,11 @@ import {
   EmptyState
 } from './VideoListStyles';
 
-// Sample user ID - replace with your actual name
-const USER_ID = 'mehyar_alkhouri'; // Replace with your first_last format
+import { getUserId } from '../../utils/environment';
+import { getVideoThumbnail } from '../../utils/videoHelpers';
+
+// Get user ID from environment variables
+const USER_ID = getUserId();
 
 export const VideoList: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -31,32 +34,10 @@ export const VideoList: React.FC = () => {
   useEffect(() => {
     dispatch(fetchVideos(USER_ID));
   }, [dispatch]);
-
   // Filter videos to only show those with valid URLs
   const validVideos = videos.filter(video => 
     video.video_url && video.video_url.trim() !== ''
   );
-
-  const getYouTubeVideoId = (url: string): string | null => {
-    const regexes = [
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
-      /youtube\.com\/watch\?.*v=([^&\n?#]+)/
-    ];
-    
-    for (const regex of regexes) {
-      const match = url.match(regex);
-      if (match) return match[1];
-    }
-    return null;
-  };
-
-  const getVideoThumbnail = (videoUrl: string): string | null => {
-    const videoId = getYouTubeVideoId(videoUrl);
-    if (videoId) {
-      return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
-    }
-    return null;
-  };
 
   const formatDate = (dateString: string) => {
     try {

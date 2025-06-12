@@ -223,6 +223,22 @@ export const ErrorContainer = styled.div`
   color: #ff6b6b;
   text-align: center;
   margin: 2rem 0;
+  
+  a {
+    color: #fff;
+    text-decoration: underline;
+    font-weight: bold;
+  }
+  
+  ul {
+    text-align: left;
+    margin-top: 1rem;
+    padding-left: 1rem;
+  }
+  
+  li {
+    margin: 0.5rem 0;
+  }
 `;
 
 export const SpeedSelector = styled.select`
@@ -248,25 +264,36 @@ export const PlayButtonOverlay = styled.div`
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 10;
+  z-index: 100; /* Increase z-index to ensure it's above all player elements */
   background: rgba(0, 0, 0, 0.7);
   border-radius: 50%;
-  padding: 1rem;
+  padding: 1.5rem;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   &:hover {
-    background: rgba(0, 0, 0, 0.9);
-    transform: translate(-50%, -50%) scale(1.1);
+    background: rgba(102, 126, 234, 0.9); /* Use theme color on hover */
+    transform: translate(-50%, -50%) scale(1.2);
+    box-shadow: 0 0 30px rgba(102, 126, 234, 0.6);
+  }
+  
+  &:active {
+    transform: translate(-50%, -50%) scale(0.95);
   }
 `;
 
 export const VideoUrlDisplay = styled.div`
-  background: rgba(255, 255, 255, 0.1);
-  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 0.75rem;
   border-radius: 5px;
   margin-bottom: 1rem;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
   word-break: break-all;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: block;
 `;

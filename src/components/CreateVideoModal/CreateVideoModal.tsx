@@ -21,8 +21,11 @@ import {
   UrlHint
 } from './CreateVideoModalStyles';
 
-// User ID - replace with your actual name
-const USER_ID = 'mehyar_alkhouri'; // Replace with your first_last format
+import { getUserId } from '../../utils/environment';
+import { validateVideoUrl } from '../../utils/videoHelpers';
+
+// Get user ID from environment variables
+const USER_ID = getUserId();
 
 export const CreateVideoModal: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -46,16 +49,7 @@ export const CreateVideoModal: React.FC = () => {
     }));
     // Clear error when user starts typing
     if (error) setError(null);
-  };
-
-  const validateUrl = (url: string): boolean => {
-    try {
-      new URL(url);
-      return true;
-    } catch {
-      return false;
-    }
-  };
+  };  // Using the shared utility for URL validation
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,9 +68,8 @@ export const CreateVideoModal: React.FC = () => {
       setError('Video URL is required');
       return;
     }
-    
-    if (!validateUrl(formData.video_url)) {
-      setError('Please enter a valid URL');
+    if (!validateVideoUrl(formData.video_url)) {
+      setError('Please enter a valid URL from YouTube, Vimeo, Dailymotion, or a direct video file (.mp4, .webm, .ogg)');
       return;
     }
 
@@ -151,10 +144,15 @@ export const CreateVideoModal: React.FC = () => {
               onChange={handleInputChange}
               placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
               required
-            />
-            <UrlHint>
+            />            <UrlHint>
               <LinkIcon size={16} style={{ display: 'inline', marginRight: '0.5rem' }} />
-              Supported platforms: YouTube, Vimeo, Dailymotion, and direct video files
+              <strong>Supported platforms:</strong>
+              <ul style={{ marginTop: '0.5rem', marginBottom: '0', paddingLeft: '1.5rem' }}>
+                <li>YouTube (youtube.com, youtu.be)</li>
+                <li>Vimeo (vimeo.com)</li>
+                <li>Dailymotion (dailymotion.com, dai.ly)</li>
+                <li>Direct video files (.mp4, .webm, .ogg)</li>
+              </ul>
             </UrlHint>
           </FormGroup>
 
