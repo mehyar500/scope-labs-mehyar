@@ -231,7 +231,13 @@ export const VideoPlayer: React.FC = () => {
 
       {!isFullscreen && (
         <VideoUrlDisplay>
-          Video URL: {currentVideo.video_url}
+          Video URL: {currentVideo.video_url ? (
+            <a href={currentVideo.video_url} target="_blank" rel="noopener noreferrer" style={{ color: '#fff', textDecoration: 'underline' }}>
+              {currentVideo.video_url}
+            </a>
+          ) : (
+            <span style={{ color: '#ff6b6b' }}>No video URL provided</span>
+          )}
         </VideoUrlDisplay>
       )}
 
@@ -247,7 +253,6 @@ export const VideoPlayer: React.FC = () => {
             height="100%"
             controls
             playing={isPlaying}
-            light={true}
             playbackRate={playbackSpeed}
             volume={volume}
             muted={isMuted}
