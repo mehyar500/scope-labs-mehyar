@@ -18,7 +18,7 @@ echo
 echo
 
 # Test 2: Create a test video (example)
-echo "est 2: Creating a test video..."
+echo "Test 2: Creating a test video..."
 curl -s -X POST "$API_BASE_URL/videos" \
   -H "Content-Type: application/json" \
   -d '{
@@ -30,28 +30,41 @@ curl -s -X POST "$API_BASE_URL/videos" \
 echo
 echo
 
-# Test 3: Create another test video
-echo "Test 3: Creating another test video..."
-curl -s -X POST "$API_BASE_URL/videos" \
+# Test 3: Edit a video (example)
+VIDEO_ID="REPLACE_WITH_VIDEO_ID" # Set this to a real video ID after creation
+
+echo "Test 3: Editing a video..."
+curl -s -X PUT "$API_BASE_URL/videos" \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "'$USER_ID'",
-    "title": "TypeScript Fundamentals",
-    "description": "Master TypeScript basics including types, interfaces, and generics for better JavaScript development.",
-    "video_url": "https://www.youtube.com/watch?v=gp5H0Vw39yw"
+    "video_id": "'$VIDEO_ID'",
+    "title": "Updated React Hooks Title",
+    "description": "Updated description for React Hooks tutorial.",
+    "video_url": "https://www.youtube.com/watch?v=TNhaISOUy6Q"
   }'
-echo
 echo
 
-# Test 4: Create a third test video
-echo "Test 4: Creating a third test video..."
-curl -s -X POST "$API_BASE_URL/videos" \
+# Test 4: Get single video (example)
+echo "Test 4: Getting a single video..."
+curl -s -X GET "$API_BASE_URL/videos/single?user_id=$USER_ID&video_id=$VIDEO_ID"
+echo
+
+echo
+# Test 5: Create a comment (example)
+echo "Test 5: Creating a comment..."
+curl -s -X POST "$API_BASE_URL/videos/comments" \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": "'$USER_ID'",
-    "title": "Redux Toolkit Tutorial",
-    "description": "Learn modern Redux patterns with Redux Toolkit for efficient state management in React applications.",
-    "video_url": "https://www.youtube.com/watch?v=9zySeP5vH9c"
+    "video_id": "'$VIDEO_ID'",
+    "comment": "This is a test comment from the API script."
   }'
 echo
+
 echo
+# Test 6: Get video comments (example)
+echo "Test 6: Getting video comments..."
+curl -s -X GET "$API_BASE_URL/videos/comments?user_id=$USER_ID&video_id=$VIDEO_ID"
+echo
+
