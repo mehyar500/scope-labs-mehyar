@@ -1,26 +1,25 @@
 /**
- * Validates if a URL is a supported video format
- * @param url The URL to validate
- * @returns boolean indicating if the URL is valid and supported
+ * validates if a url is a supported video format
+ * @param url the url to validate
+ * @returns boolean indicating if the url is valid and supported
  */
 export const validateVideoUrl = (url: string): boolean => {
   try {
     const parsedUrl = new URL(url);
     
-    // Check if it's a valid URL first
+    // check if it's a valid url first
     if (!parsedUrl.protocol.startsWith('http')) {
       return false;
     }
     
-    // Check for supported video platforms
+    // check for supported video platforms
     const host = parsedUrl.hostname.toLowerCase();
     
-    // YouTube
+    // youtube
     if (host.includes('youtube.com') || host.includes('youtu.be')) {
-      return true;
-    }
+      return true;    }
     
-    // Vimeo
+    // vimeo
     if (host.includes('vimeo.com')) {
       return true;
     }

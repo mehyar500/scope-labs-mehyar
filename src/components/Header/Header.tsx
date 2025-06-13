@@ -20,8 +20,8 @@ export function Header() {
 
   return (
     <HeaderContainer>
-      <HeaderContent>
-        <Logo to="/">          <LogoIcon>
+      <HeaderContent>        <Logo to="/">
+          <LogoIcon>
             <BookOpen size={24} />
           </LogoIcon>
           EduPlayer

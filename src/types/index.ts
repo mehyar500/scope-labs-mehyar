@@ -36,7 +36,7 @@ export interface CreateCommentRequest {
   content: string;
 }
 
-// API response types
+// api response types
 export interface GetVideosResponse {
   videos: Video[];
 }

@@ -73,46 +73,40 @@ export const VideoPlayer = () => {
   const [commentText, setCommentText] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [playerError, setPlayerError] = useState<string | null>(null);  useEffect(() => {
+  const [isPlaying, setIsPlaying] = useState(false);  const [playerError, setPlayerError] = useState<string | null>(null);
+
+  // check if we have the video data and fetch if needed
+  useEffect(() => {
     if (id) {
-      console.log('VideoPlayer - Video ID:', id);
-      console.log('VideoPlayer - Current video:', currentVideo);
-      console.log('VideoPlayer - Available videos:', videos);
-      console.log('VideoPlayer - Video loading state:', videoLoading);
-      console.log('VideoPlayer - Video error state:', videoError);
       
-      // If currentVideo exists and matches the ID, we're good
+      // if currentVideo exists and matches the id, we're good
       if (currentVideo && currentVideo.id === id) {
-        console.log('Current video already matches ID:', currentVideo);
         return;
       }
       
-      // First check if video is already in the videos array
+      // first check if video is already in the videos array
       const existingVideo = videos.find(v => v.id === id);
       if (existingVideo && existingVideo.video_url) {
-        // Set it as current video immediately
+        // set it as current video immediately
         dispatch(setCurrentVideo(existingVideo));
-        console.log('Found video in existing list:', existingVideo);
       } else {
-        // Fetch from API - this is essential for page refreshes
-        console.log('Video not found in list or currentVideo, fetching from API:', id);
+        // fetch from api - this is essential for page refreshes
         dispatch(fetchVideoById({ videoId: id, userId: getUserId() }));
       }
     }
   }, [dispatch, id, currentVideo, videos, videoLoading, videoError]);
-  // Separate effect for fetching comments
+  // separate effect for fetching comments
   useEffect(() => {
     if (id) {
       dispatch(fetchComments(id));
     }
   }, [dispatch, id]);
 
-  // Clear video error when we successfully have a currentVideo
+  // clear video error when we successfully have a currentVideo
   useEffect(() => {
     if (currentVideo && currentVideo.id === id) {
       setPlayerError(null);
-      // Clear any Redux video error as well
+      // clear any redux video error as well
       if (videoError) {
         dispatch(clearError());
       }
@@ -158,7 +152,7 @@ export const VideoPlayer = () => {
     }
   };
   const handlePlayPause = () => {
-    // Toggle playing state and log for debugging
+    // toggle playing state and log for debugging
     const newPlayingState = !isPlaying;
     console.log('Play button clicked, setting isPlaying to:', newPlayingState);
     console.log('Current video URL:', currentVideo?.video_url);
@@ -169,16 +163,15 @@ export const VideoPlayer = () => {
     const errorMessage = getVideoErrorMessage(error, currentVideo?.video_url || '');
     setPlayerError(errorMessage);
     
-    // Reset playing state on error
+    // reset playing state on error
     setIsPlaying(false);
   };
 
   const handlePlayerReady = () => {
     console.log('Player ready event fired');
     setPlayerError(null);
-    
-    // Set isPlaying to true to auto-play when ready
-    // Only if not already playing
+      // set isPlaying to true to auto-play when ready
+    // only if not already playing
     if (!isPlaying) {
       console.log('Setting isPlaying to true after player ready');
       setIsPlaying(true);
@@ -187,21 +180,21 @@ export const VideoPlayer = () => {
     if (currentVideo?.video_url) {
       console.log('Video ready to play:', currentVideo.video_url);
     }
-  };  // Validate and fix video URL if needed
+  };  // validate and fix video url if needed
   useEffect(() => {
     if (currentVideo?.video_url) {
       console.log('Current video URL:', currentVideo.video_url);
       
-      // Use enhanced validation and fixing
+      // use enhanced validation and fixing
       const { isValid, fixedUrl, error } = validateAndFixUrl(currentVideo.video_url);
       
       if (isValid) {
-        // Check if ReactPlayer can play this URL
+        // check if ReactPlayer can play this url
         const canPlay = ReactPlayer.canPlay(fixedUrl);
         console.log('ReactPlayer can play this URL:', canPlay);
         
         if (canPlay) {
-          // If the URL was fixed, update it
+          // if the url was fixed, update it
           if (fixedUrl !== currentVideo.video_url) {
             console.log(`URL was fixed: ${currentVideo.video_url} → ${fixedUrl}`);
             dispatch(setCurrentVideo({

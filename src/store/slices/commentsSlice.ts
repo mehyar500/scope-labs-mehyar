@@ -14,7 +14,7 @@ const initialState: CommentsState = {
   error: null,
 };
 
-// Async thunks
+// async thunks
 export const fetchComments = createAsyncThunk(
   'comments/fetchComments',
   async (videoId: string) => {
@@ -48,37 +48,35 @@ const commentsSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch comments
+      // fetch comments
       .addCase(fetchComments.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchComments.fulfilled, (state, action) => {
-        state.loading = false;
-        // Replace all comments with fresh data from server
-        // This will remove any temporary comments and show real ones
+        state.loading = false;        // replace all comments with fresh data from server
+        // this will remove any temporary comments and show real ones
         state.comments = action.payload;
       })
       .addCase(fetchComments.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch comments';
       })
-      // Create comment
+      // create comment
       .addCase(createComment.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(createComment.fulfilled, (state, action) => {
-        state.loading = false;
-        // Create a temporary comment object to show immediately
+        state.loading = false;        // create a temporary comment object to show immediately
         const tempComment: Comment = {
-          id: `temp-${Date.now()}`, // Temporary ID
+          id: `temp-${Date.now()}`, // temporary id
           video_id: action.payload.video_id,
           user_id: action.payload.user_id,
           content: action.payload.content,
           created_at: new Date().toISOString(),
         };
-        // Add the new comment to the beginning of the array for immediate display
+        // add the new comment to the beginning of the array for immediate display
         state.comments.unshift(tempComment);
       })
       .addCase(createComment.rejected, (state, action) => {

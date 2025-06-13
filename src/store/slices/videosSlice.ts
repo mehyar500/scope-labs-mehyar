@@ -16,12 +16,12 @@ const initialState: VideosState = {
   error: null,
 };
 
-// Async thunks
+// async thunks
 export const fetchVideos = createAsyncThunk(
   'videos/fetchVideos',
   async (userId: string) => {
     const response = await api.getUserVideos(userId);
-    // Extract videos array from the response object
+    // extract videos array from the response object
     return response.videos || [];
   }
 );
@@ -67,22 +67,21 @@ const videosSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch videos
+      // fetch videos
       .addCase(fetchVideos.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchVideos.fulfilled, (state, action) => {
-        state.loading = false;
-        // Replace all videos with fresh data from server
-        // This will remove any temporary videos and show real ones
+        state.loading = false;        // replace all videos with fresh data from server
+        // this will remove any temporary videos and show real ones
         state.videos = action.payload;
       })
       .addCase(fetchVideos.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch videos';
       })
-      // Fetch single video
+      // fetch single video
       .addCase(fetchVideoById.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -95,37 +94,36 @@ const videosSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || 'Failed to fetch video';
       })
-      // Create video
+      // create video
       .addCase(createVideo.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(createVideo.fulfilled, (state, action) => {
-        state.loading = false;
-        // Create a temporary video object to show immediately
+        state.loading = false;        // create a temporary video object to show immediately
         const tempVideo: Video = {
-          id: `temp-${Date.now()}`, // Temporary ID
+          id: `temp-${Date.now()}`, // temporary id
           user_id: action.payload.user_id,
           title: action.payload.title,
           description: action.payload.description,
           video_url: action.payload.video_url,
           created_at: new Date().toISOString(),
         };
-        // Add the new video to the beginning of the array for immediate display
+        // add the new video to the beginning of the array for immediate display
         state.videos.unshift(tempVideo);
       })
       .addCase(createVideo.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Failed to create video';
       })
-      // Update video
+      // update video
       .addCase(updateVideo.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(updateVideo.fulfilled, (state, action) => {
         state.loading = false;
-        // Update the video in the list
+        // update the video in the list
         const index = state.videos.findIndex(v => v.id === action.meta.arg.video_id);
         if (index !== -1 && typeof action.payload === 'object' && action.payload.id) {
           state.videos[index] = action.payload;

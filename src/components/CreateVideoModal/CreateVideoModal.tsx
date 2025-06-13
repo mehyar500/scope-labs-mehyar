@@ -24,7 +24,7 @@ import {
 import { getUserId } from '../../utils/environment';
 import { validateVideoUrl } from '../../utils/videoHelpers';
 
-// Get user ID from environment variables
+// get user id from environment variables
 const USER_ID = getUserId();
 
 export const CreateVideoModal = () => {
@@ -46,13 +46,13 @@ export const CreateVideoModal = () => {
       ...prev,
       [name]: value,
     }));
-    // Clear error when user starts typing
+    // clear error when user starts typing
     if (error) setError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Validation
+    // validation
     if (!formData.title?.trim()) {
       setError('Title is required');
       return;
@@ -83,7 +83,7 @@ export const CreateVideoModal = () => {
 
       await dispatch(createVideo(videoData)).unwrap();
       
-      // Refresh videos list to show the new video immediately
+      // refresh videos list to show the new video immediately
       dispatch(fetchVideos(USER_ID));
       
       handleClose();

@@ -18,7 +18,7 @@ const apiClient = axios.create({
   },
 });
 
-// Add request interceptor for logging
+// add request interceptor for logging
 apiClient.interceptors.request.use(
   (config) => {
     console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
@@ -30,7 +30,7 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Add response interceptor for error handling
+// add response interceptor for error handling
 apiClient.interceptors.response.use(
   (response) => {
     console.log(`API Response: ${response.status} ${response.config.url}`);
@@ -42,7 +42,7 @@ apiClient.interceptors.response.use(
   }
 );
 
-// Video endpoints
+// video endpoints
 export const createVideo = async (videoData: CreateVideoRequest): Promise<any> => {
   const response = await apiClient.post('/videos', videoData);
   return response.data;
@@ -63,7 +63,7 @@ export const editVideo = async (videoData: EditVideoRequest): Promise<any> => {
   return response.data;
 };
 
-// Comment endpoints
+// comment endpoints
 export const createComment = async (commentData: CreateCommentRequest): Promise<any> => {
   const response = await apiClient.post('/videos/comments', commentData);
   return response.data;

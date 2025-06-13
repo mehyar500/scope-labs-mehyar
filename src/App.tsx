@@ -34,9 +34,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </ContentWrapper>
-      </MainContent>
-      
-      {/* Modals */}
+      </MainContent>      {/* modals */}
       {showCreateModal && <CreateVideoModal />}
       {showEditModal && <EditVideoModal />}
     </AppContainer>
