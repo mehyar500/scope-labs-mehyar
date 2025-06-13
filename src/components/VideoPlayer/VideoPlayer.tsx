@@ -6,6 +6,9 @@ import 'react-player/youtube';
 import 'react-player/vimeo';
 import 'react-player/dailymotion';
 import 'react-player/file';
+import 'react-player/facebook';
+import 'react-player/twitch';
+import 'react-player/soundcloud';
 
 import { 
   ArrowLeft, 
@@ -22,12 +25,14 @@ import {
   Pause
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
-import { fetchVideoById, setCurrentVideo } from '../../store/slices/videosSlice';
+import { fetchVideoById, setCurrentVideo, clearError } from '../../store/slices/videosSlice';
 import { fetchComments, createComment } from '../../store/slices/commentsSlice';
 import { setFullscreen, setPlaybackSpeed, setVolume, setShowEditModal, setSelectedVideoId } from '../../store/slices/uiSlice';
 import { CreateCommentRequest } from '../../types';
 import { getUserId } from '../../utils/environment';
-import { getVideoType, fixVideoUrl } from '../../utils/videoHelpers';
+import { getVideoType } from '../../utils/videoHelpers';
+import { getVideoErrorMessage, getVideoTroubleshootingSuggestions, formatDate } from '../../utils/errorHelpers';
+import { getPlayerConfig, validateAndFixUrl } from '../../utils/playerHelpers';
 import {
   PlayerContainer,
   PlayerHeader,
@@ -57,26 +62,62 @@ import {
   VideoUrlDisplay
 } from './VideoPlayerStyles';
 
-export const VideoPlayer: React.FC = () => {
+export const VideoPlayer = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   
-  const { currentVideo, loading: videoLoading, error: videoError } = useAppSelector(state => state.videos);
+  const { currentVideo, videos, loading: videoLoading, error: videoError } = useAppSelector(state => state.videos);
   const { comments, loading: commentsLoading } = useAppSelector(state => state.comments);
   const { isFullscreen, playbackSpeed, volume } = useAppSelector(state => state.ui);
   const [commentText, setCommentText] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [playerError, setPlayerError] = useState<string | null>(null);
-
+  const [playerError, setPlayerError] = useState<string | null>(null);  useEffect(() => {
+    if (id) {
+      console.log('VideoPlayer - Video ID:', id);
+      console.log('VideoPlayer - Current video:', currentVideo);
+      console.log('VideoPlayer - Available videos:', videos);
+      console.log('VideoPlayer - Video loading state:', videoLoading);
+      console.log('VideoPlayer - Video error state:', videoError);
+      
+      // If currentVideo exists and matches the ID, we're good
+      if (currentVideo && currentVideo.id === id) {
+        console.log('Current video already matches ID:', currentVideo);
+        return;
+      }
+      
+      // First check if video is already in the videos array
+      const existingVideo = videos.find(v => v.id === id);
+      if (existingVideo && existingVideo.video_url) {
+        // Set it as current video immediately
+        dispatch(setCurrentVideo(existingVideo));
+        console.log('Found video in existing list:', existingVideo);
+      } else {
+        // Fetch from API - this is essential for page refreshes
+        console.log('Video not found in list or currentVideo, fetching from API:', id);
+        dispatch(fetchVideoById({ videoId: id, userId: getUserId() }));
+      }
+    }
+  }, [dispatch, id, currentVideo, videos, videoLoading, videoError]);
+  // Separate effect for fetching comments
   useEffect(() => {
     if (id) {
-      dispatch(fetchVideoById(id));
       dispatch(fetchComments(id));
     }
   }, [dispatch, id]);
+
+  // Clear video error when we successfully have a currentVideo
+  useEffect(() => {
+    if (currentVideo && currentVideo.id === id) {
+      setPlayerError(null);
+      // Clear any Redux video error as well
+      if (videoError) {
+        dispatch(clearError());
+      }
+    }
+  }, [currentVideo, id, videoError, dispatch]);
 
   const handleBack = () => {
     if (isFullscreen) {
@@ -125,45 +166,7 @@ export const VideoPlayer: React.FC = () => {
   };  const handlePlayerError = (error: any) => {
     console.error('Video player error:', error);
     
-    // Try to determine the type of error for more helpful messages
-    let errorMessage = 'Failed to load video. ';
-    const videoType = currentVideo?.video_url ? getVideoType(currentVideo.video_url) : 'unknown';
-    
-    if (error && typeof error === 'object') {
-      // YouTube specific errors
-      if (videoType === 'youtube') {
-        if (error.data === 101 || error.data === 150) {
-          errorMessage += 'This video cannot be played because embedding has been disabled by the owner.';
-        } else if (error.data === 2) {
-          errorMessage += 'Invalid YouTube video ID or URL format.';
-        } else if (error.data === 5) {
-          errorMessage += 'This YouTube video cannot be played in your browser.';
-        } else if (error.data === 100) {
-          errorMessage += 'This YouTube video has been removed or is private.';
-        } else {
-          errorMessage += `YouTube player error (${error.data || 'unknown'}). Please try a different video.`;
-        }
-      } 
-      // Vimeo specific errors
-      else if (videoType === 'vimeo') {
-        errorMessage += 'Vimeo video playback error. The video may be private or have embedding disabled.';
-      }
-      // Dailymotion specific errors
-      else if (videoType === 'dailymotion') {
-        errorMessage += 'Dailymotion video playback error. The video may be private or region-restricted.';
-      }
-      // File specific errors
-      else if (videoType === 'file') {
-        errorMessage += 'Media file playback error. The file may be corrupted or in an unsupported format.';
-      }
-      // Generic error
-      else {
-        errorMessage += 'Please check the video URL or try a different browser.';
-      }
-    } else {
-      errorMessage += 'Please check the video URL or try a different browser.';
-    }
-    
+    const errorMessage = getVideoErrorMessage(error, currentVideo?.video_url || '');
     setPlayerError(errorMessage);
     
     // Reset playing state on error
@@ -188,37 +191,43 @@ export const VideoPlayer: React.FC = () => {
   useEffect(() => {
     if (currentVideo?.video_url) {
       console.log('Current video URL:', currentVideo.video_url);
-      const canPlay = ReactPlayer.canPlay(currentVideo.video_url);
-      console.log('ReactPlayer can play this URL:', canPlay);
       
-      if (canPlay) {
-        // If ReactPlayer can play the URL, clear any previous error
-        setPlayerError(null);
-      } else {
-        // Try to fix the URL using our utility
-        const fixedUrl = fixVideoUrl(currentVideo.video_url);
+      // Use enhanced validation and fixing
+      const { isValid, fixedUrl, error } = validateAndFixUrl(currentVideo.video_url);
+      
+      if (isValid) {
+        // Check if ReactPlayer can play this URL
+        const canPlay = ReactPlayer.canPlay(fixedUrl);
+        console.log('ReactPlayer can play this URL:', canPlay);
         
-        if (fixedUrl !== currentVideo.video_url) {
-          console.log(`Attempting to fix URL: ${currentVideo.video_url} → ${fixedUrl}`);
-          dispatch(setCurrentVideo({
-            ...currentVideo,
-            video_url: fixedUrl
-          }));
-          return; // Exit early as we're updating the state which will trigger this effect again
+        if (canPlay) {
+          // If the URL was fixed, update it
+          if (fixedUrl !== currentVideo.video_url) {
+            console.log(`URL was fixed: ${currentVideo.video_url} → ${fixedUrl}`);
+            dispatch(setCurrentVideo({
+              ...currentVideo,
+              video_url: fixedUrl
+            }));
+            return;
+          }
+          setPlayerError(null);
+        } else {
+          setPlayerError('This video URL format is not supported by the player. Try a different URL or platform.');
         }
-        
-        // If we couldn't fix it, show an error
-        setPlayerError('This video URL format is not supported. Try a YouTube, Vimeo, Dailymotion URL or direct video file (.mp4, .webm, .ogg).');
+      } else {
+        setPlayerError(error || 'Invalid video URL format.');
       }
+    } else if (currentVideo) {
+      // Video exists but no URL
+      setPlayerError('No video URL provided for this video.');
     }
-  }, [currentVideo, dispatch]);
-
-  const handleCommentSubmit = async (e: React.FormEvent) => {
+  }, [currentVideo, dispatch]);  const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!commentText.trim() || !id) return;
 
     setSubmittingComment(true);
-    try {      const commentData: CreateCommentRequest = {
+    try {
+      const commentData: CreateCommentRequest = {
         video_id: id,
         user_id: getUserId(),
         content: commentText.trim(),
@@ -226,21 +235,15 @@ export const VideoPlayer: React.FC = () => {
       
       await dispatch(createComment(commentData));
       setCommentText('');
+      
+      // Refresh comments list to show the new comment immediately
+      dispatch(fetchComments(id));
     } catch (error) {
       console.error('Failed to create comment:', error);
     } finally {
       setSubmittingComment(false);
     }
   };
-
-  const formatDate = (dateString: string) => {
-    try {
-      return new Date(dateString).toLocaleString();
-    } catch {
-      return 'Unknown date';
-    }
-  };
-
   if (videoLoading) {
     return (
       <LoadingContainer>
@@ -249,7 +252,8 @@ export const VideoPlayer: React.FC = () => {
     );
   }
 
-  if (videoError || !currentVideo) {
+  // Show error only if we have an error AND we're not loading AND we've actually tried to fetch
+  if (videoError && !videoLoading && (!currentVideo || currentVideo.id !== id)) {
     return (
       <div>
         <PlayerHeader>
@@ -258,7 +262,50 @@ export const VideoPlayer: React.FC = () => {
           </BackButton>
         </PlayerHeader>
         <ErrorContainer>
-          Error loading video: {videoError || 'Video not found'}
+          Error loading video: {videoError}
+          <br />
+          <button 
+            onClick={() => {
+              if (id) {
+                dispatch(fetchVideoById({ videoId: id, userId: getUserId() }));
+              }
+            }}
+            style={{ 
+              marginTop: '10px', 
+              padding: '8px 16px', 
+              backgroundColor: '#007bff', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '4px', 
+              cursor: 'pointer' 
+            }}
+          >
+            Retry
+          </button>
+        </ErrorContainer>
+      </div>
+    );
+  }
+  // If no current video but we have an ID and we're not in an error state, show loading while we fetch
+  if (!currentVideo && id && !videoError && !videoLoading) {
+    return (
+      <LoadingContainer>
+        Loading video...
+      </LoadingContainer>
+    );
+  }
+
+  // If no current video and no ID, that's an error
+  if (!currentVideo) {
+    return (
+      <div>
+        <PlayerHeader>
+          <BackButton onClick={handleBack}>
+            <ArrowLeft size={20} />
+          </BackButton>
+        </PlayerHeader>
+        <ErrorContainer>
+          Video not found
         </ErrorContainer>
       </div>
     );
@@ -325,21 +372,14 @@ export const VideoPlayer: React.FC = () => {
             <h3>{playerError}</h3>
             <p>Try the following:</p>
             <ul>
-              <li>Make sure the URL format is correct for the platform:</li>
-              <ul>
-                <li>YouTube: https://www.youtube.com/watch?v=VIDEO_ID</li>
-                <li>Vimeo: https://vimeo.com/VIDEO_ID</li>
-                <li>Dailymotion: https://www.dailymotion.com/video/VIDEO_ID</li>
-                <li>Direct files: Link ending with .mp4, .webm, or .ogg</li>
-              </ul>
-              <li>Check if the video is available in your region</li>
-              <li>Ensure the video allows embedding (some creators restrict this)</li>
-              <li>Try opening the URL directly in a browser to confirm it works</li>
+              {getVideoTroubleshootingSuggestions(currentVideo.video_url).map((suggestion, index) => (
+                <li key={index}>{suggestion}</li>
+              ))}
             </ul>
             <p>Current URL: <a href={currentVideo.video_url} target="_blank" rel="noopener noreferrer">{currentVideo.video_url}</a></p>
           </ErrorContainer>
-        ) : (<ReactPlayer
-            url={currentVideo.video_url}
+        ) : (          <ReactPlayer
+            url={currentVideo.video_url || ''}
             width="100%"
             height="100%"
             controls={true}
@@ -349,51 +389,21 @@ export const VideoPlayer: React.FC = () => {
             muted={isMuted}
             onError={handlePlayerError}
             onReady={handlePlayerReady}
-            onPlay={() => console.log('Video playback started')}
-            onPause={() => console.log('Video playback paused')}
-            config={{
-              youtube: {
-                playerVars: { 
-                  showinfo: 1,
-                  origin: window.location.origin,
-                  autoplay: isPlaying ? 1 : 0,
-                  iv_load_policy: 3,
-                  modestbranding: 1,
-                  enablejsapi: 1,
-                  rel: 0, // Don't show related videos
-                  fs: 1 // Allow fullscreen
-                }
-              },
-              vimeo: {
-                playerOptions: {
-                  autoplay: isPlaying,
-                  muted: isMuted,
-                  controls: true,
-                  responsive: true,
-                  dnt: true // Do not track
-                }
-              },
-              dailymotion: {
-                params: {
-                  controls: true,
-                  autoplay: isPlaying,
-                  mute: isMuted
-                }
-              },              file: {
-                attributes: {
-                  controlsList: 'nodownload',
-                  autoPlay: isPlaying,
-                  muted: isMuted
-                },
-                forceVideo: true,
-                tracks: []
-              }
+            onPlay={() => {
+              console.log('Video playback started');
+              setIsPlaying(true);
             }}
+            onPause={() => {
+              console.log('Video playback paused');
+              setIsPlaying(false);
+            }}
+            onBuffer={() => console.log('Video buffering')}
+            onSeek={(seconds: number) => console.log('Video seeked to:', seconds)}
+            config={getPlayerConfig(currentVideo.video_url, isPlaying, isMuted)}
           />
-        )}        {/* Always show play button overlay if not playing or if there's an error */}
-        {(!isPlaying || playerError) && (
+        )}        {/* Always show play button overlay if not playing or if there's an error */}        {(!isPlaying || playerError) && (
           <PlayButtonOverlay 
-            onClick={(e) => {
+            onClick={(e: React.MouseEvent<HTMLDivElement>) => {
               e.stopPropagation();
               e.preventDefault();
               console.log('Play button overlay clicked');
@@ -412,14 +422,14 @@ export const VideoPlayer: React.FC = () => {
             role="button"
             aria-label="Play video"
             tabIndex={0}
-            onKeyDown={(e) => {
+            onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 handlePlayPause();
               }
             }}
           >
-            <Play size={48} color="white" strokeWidth={1.5} />
+            <Play size={48} />
             {playerError && <div style={{ fontSize: '0.9rem', marginTop: '0.5rem' }}>Try Again</div>}
           </PlayButtonOverlay>
         )}
@@ -451,10 +461,9 @@ export const VideoPlayer: React.FC = () => {
               Comments ({comments.length})
             </CommentsHeader>
 
-            <CommentForm onSubmit={handleCommentSubmit}>
-              <CommentInput
+            <CommentForm onSubmit={handleCommentSubmit}>              <CommentInput
                 value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setCommentText(e.target.value)}
                 placeholder="Add a comment..."
                 required
               />

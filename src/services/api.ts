@@ -53,9 +53,9 @@ export const getUserVideos = async (userId: string): Promise<GetVideosResponse> 
   return response.data;
 };
 
-export const getSingleVideo = async (videoId: string): Promise<Video> => {
-  const response = await apiClient.get(`/videos/single?video_id=${videoId}`);
-  return response.data;
+export const getSingleVideo = async (videoId: string, userId: string): Promise<Video> => {
+  const response = await apiClient.get(`/videos/single?video_id=${videoId}&user_id=${userId}`);
+  return response.data.video || response.data;
 };
 
 export const editVideo = async (videoData: EditVideoRequest): Promise<any> => {

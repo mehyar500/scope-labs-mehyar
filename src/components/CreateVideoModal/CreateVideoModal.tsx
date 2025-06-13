@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, Upload, Link as LinkIcon } from 'lucide-react';
 import { useAppDispatch } from '../../hooks/redux';
 import { setShowCreateModal } from '../../store/slices/uiSlice';
-import { createVideo } from '../../store/slices/videosSlice';
+import { createVideo, fetchVideos } from '../../store/slices/videosSlice';
 import { CreateVideoRequest } from '../../types';
 import {
   ModalOverlay,
@@ -27,7 +27,7 @@ import { validateVideoUrl } from '../../utils/videoHelpers';
 // Get user ID from environment variables
 const USER_ID = getUserId();
 
-export const CreateVideoModal: React.FC = () => {
+export const CreateVideoModal = () => {
   const dispatch = useAppDispatch();
   const [formData, setFormData] = useState({
     title: '',
@@ -40,7 +40,6 @@ export const CreateVideoModal: React.FC = () => {
   const handleClose = () => {
     dispatch(setShowCreateModal(false));
   };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -49,7 +48,7 @@ export const CreateVideoModal: React.FC = () => {
     }));
     // Clear error when user starts typing
     if (error) setError(null);
-  };  // Using the shared utility for URL validation
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,9 +73,7 @@ export const CreateVideoModal: React.FC = () => {
     }
 
     setIsSubmitting(true);
-    setError(null);
-
-    try {
+    setError(null);    try {
       const videoData: CreateVideoRequest = {
         user_id: USER_ID,
         title: formData.title?.trim() || '',
@@ -85,6 +82,10 @@ export const CreateVideoModal: React.FC = () => {
       };
 
       await dispatch(createVideo(videoData)).unwrap();
+      
+      // Refresh videos list to show the new video immediately
+      dispatch(fetchVideos(USER_ID));
+      
       handleClose();
     } catch (err: any) {
       setError(err.message || 'Failed to create video. Please try again.');
@@ -95,7 +96,7 @@ export const CreateVideoModal: React.FC = () => {
 
   return (
     <ModalOverlay onClick={handleClose}>
-      <ModalContent onClick={(e) => e.stopPropagation()}>
+      <ModalContent onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}>
         <ModalHeader>
           <ModalTitle>
             <Upload size={24} />

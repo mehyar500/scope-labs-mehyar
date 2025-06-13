@@ -30,9 +30,25 @@ export const validateVideoUrl = (url: string): boolean => {
       return true;
     }
     
+    // Facebook
+    if (host.includes('facebook.com') || host.includes('fb.watch')) {
+      return true;
+    }
+    
+    // Twitch
+    if (host.includes('twitch.tv')) {
+      return true;
+    }
+    
+    // SoundCloud
+    if (host.includes('soundcloud.com')) {
+      return true;
+    }
+    
     // Direct video files
     const path = parsedUrl.pathname.toLowerCase();
-    if (path.endsWith('.mp4') || path.endsWith('.webm') || path.endsWith('.ogg')) {
+    if (path.endsWith('.mp4') || path.endsWith('.webm') || path.endsWith('.ogg') || 
+        path.endsWith('.mp3') || path.endsWith('.wav') || path.endsWith('.m4a')) {
       return true;
     }
     
@@ -48,7 +64,7 @@ export const validateVideoUrl = (url: string): boolean => {
  * @param url The video URL
  * @returns Type of video as a string
  */
-export const getVideoType = (url: string): 'youtube' | 'vimeo' | 'dailymotion' | 'file' | 'unknown' => {
+export const getVideoType = (url: string): 'youtube' | 'vimeo' | 'dailymotion' | 'facebook' | 'twitch' | 'soundcloud' | 'file' | 'unknown' => {
   if (!url) return 'unknown';
   
   url = url.toLowerCase();
@@ -65,8 +81,22 @@ export const getVideoType = (url: string): 'youtube' | 'vimeo' | 'dailymotion' |
     return 'dailymotion';
   }
   
-  if (url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.ogg') || url.endsWith('.mp3') || 
-      url.includes('.mp4?') || url.includes('.webm?') || url.includes('.ogg?') || url.includes('.mp3?')) {
+  if (url.includes('facebook.com') || url.includes('fb.watch')) {
+    return 'facebook';
+  }
+  
+  if (url.includes('twitch.tv')) {
+    return 'twitch';
+  }
+  
+  if (url.includes('soundcloud.com')) {
+    return 'soundcloud';
+  }
+  
+  if (url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.ogg') || 
+      url.endsWith('.mp3') || url.endsWith('.wav') || url.endsWith('.m4a') ||
+      url.includes('.mp4?') || url.includes('.webm?') || url.includes('.ogg?') || 
+      url.includes('.mp3?') || url.includes('.wav?') || url.includes('.m4a?')) {
     return 'file';
   }
   

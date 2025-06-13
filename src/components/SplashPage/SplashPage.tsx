@@ -39,14 +39,14 @@ import {
   FooterText
 } from './SplashPageStyles';
 
-export const SplashPage: React.FC = () => {
+export function SplashPage() {
   return (
     <SplashContainer>
       <Header>
         <HeaderContent>
           <Logo>
             <LogoIcon>
-              <BookOpen size={28} color="white" />
+              <BookOpen size={28} />
             </LogoIcon>
             EduPlayer
           </Logo>
@@ -82,7 +82,7 @@ export const SplashPage: React.FC = () => {
         <FeaturesSection>
           <FeatureCard>
             <FeatureIcon>
-              <Video size={32} color="white" />
+              <Video size={32} />
             </FeatureIcon>
             <FeatureTitle>Smart Video Player</FeatureTitle>
             <FeatureDescription>
@@ -92,7 +92,7 @@ export const SplashPage: React.FC = () => {
 
           <FeatureCard>
             <FeatureIcon>
-              <MessageCircle size={32} color="white" />
+              <MessageCircle size={32} />
             </FeatureIcon>
             <FeatureTitle>Interactive Comments</FeatureTitle>
             <FeatureDescription>
@@ -102,7 +102,7 @@ export const SplashPage: React.FC = () => {
 
           <FeatureCard>
             <FeatureIcon>
-              <Zap size={32} color="white" />
+              <Zap size={32} />
             </FeatureIcon>
             <FeatureTitle>Easy Creation</FeatureTitle>
             <FeatureDescription>
@@ -112,7 +112,7 @@ export const SplashPage: React.FC = () => {
 
           <FeatureCard>
             <FeatureIcon>
-              <Globe size={32} color="white" />
+              <Globe size={32} />
             </FeatureIcon>
             <FeatureTitle>Responsive Design</FeatureTitle>
             <FeatureDescription>
@@ -122,7 +122,7 @@ export const SplashPage: React.FC = () => {
 
           <FeatureCard>
             <FeatureIcon>
-              <Users size={32} color="white" />
+              <Users size={32} />
             </FeatureIcon>
             <FeatureTitle>Community Driven</FeatureTitle>
             <FeatureDescription>
@@ -132,7 +132,7 @@ export const SplashPage: React.FC = () => {
 
           <FeatureCard>
             <FeatureIcon>
-              <Star size={32} color="white" />
+              <Star size={32} />
             </FeatureIcon>
             <FeatureTitle>Quality Content</FeatureTitle>
             <FeatureDescription>
@@ -164,7 +164,7 @@ export const SplashPage: React.FC = () => {
       <Footer>
         <FooterContent>
           <FooterText>
-            Built with <Heart size={16} color="#ff6b6b" /> for educational excellence
+            Built with <Heart size={16} /> for educational excellence
           </FooterText>
           <FooterText>
             © 2024 EduPlayer - Empowering learners worldwide

@@ -1,46 +1,35 @@
-# Educational Video Player 
+# Educational Video Player
 
-A modern, feature-rich educational video platform built with React, TypeScript, Redux Toolkit, and styled-components. This application provides a comprehensive solution for creating, managing, and viewing educational videos with an interactive commenting system.
+A modern React-based educational video platform that allows users to create, comment on, and watch educational videos. Built with TypeScript, Redux Toolkit, and styled-components for a seamless and engaging user experience.
 
-## Solution Overview
+## Overview of Solution and Features
 
-This educational video platform is a complete React-based application that enables users to:
+This educational video platform is a comprehensive React application designed specifically for educational content creation and consumption. The solution provides:
 
-- **Browse & Filter Videos**: Display videos with valid URLs and show YouTube thumbnails
-- **Create New Content**: Add educational videos with title, description, and video URL
-- **Interactive Playback**: Full-screen video player with advanced controls (speed, volume)
-- **Real-time Engagement**: Comment system for interactive learning discussions
-- **Modern UI/UX**: Glass-morphism design with smooth animations and responsive layout
-- **Platform Support**: YouTube, Vimeo, Dailymotion, and direct video file compatibility
+### Core Functionality (As Required)
+- ✅ **Video List Display**: Shows all available videos with the ability to select and play them
+- ✅ **Video Creation**: Allows users to create new video objects with title, description, and video URL
+- ✅ **Interactive Commenting**: Users can comment on videos and view comments from other users
+- ✅ **Full-Screen Playback**: Opens videos in full-screen mode with complete playback functionality
+- ✅ **Playback Controls**: Includes options for adjusting playback speed (0.5x to 2x) and volume control
 
-### Key Technical Features
+### Additional Features
+- **Splash Page**: Engaging landing page with platform overview and call-to-actions
+- **Modern UI Design**: Glass-morphism design with smooth animations and responsive layout
+- **YouTube Integration**: Displays video thumbnails for supported platforms
+- **Video Editing**: Ability to modify existing video details
+- **URL Validation**: Automatically filters and validates video URLs
+- **Error Handling**: Comprehensive error management with user-friendly messages
+- **Mobile Responsive**: Optimized for all device sizes
 
+### Technology Stack
+- **Frontend Framework**: React 18 with TypeScript
 - **State Management**: Redux Toolkit for predictable state updates
-- **Type Safety**: Full TypeScript implementation with strict typing
-- **API Integration**: RESTful API communication with error handling
-- **Responsive Design**: Mobile-first approach with modern CSS techniques
-- **Performance**: Optimized builds with code splitting and lazy loading
-
-## Platform Features
-
-### Complete Feature Set
-- **Splash Page**: Attractive landing page with feature highlights and call-to-actions
-- **Video List View**: Browse videos with thumbnail previews and filtering
-- **Video Creation**: Add new educational videos with validation
-- **Video Player**: Full-screen playback with speed (0.5x-2x) and volume controls
-- **Comments System**: Interactive commenting with real-time updates
-- **Video Editing**: Modify video details with smart form validation
-- **URL Filtering**: Automatically filters videos without valid URLs
-- **YouTube Integration**: Shows video thumbnails for supported platforms
-
-### echnology Stack
-- **Frontend**: React 18 + TypeScript
-- **State Management**: Redux Toolkit
-- **Styling**: Styled Components
-- **Video Player**: React Player
-- **Routing**: React Router DOM
-- **HTTP Client**: Axios
-- **Icons**: Lucide React
+- **Styling**: Styled Components with CSS-in-JS
+- **Video Player**: React Player for multi-platform support
+- **Routing**: React Router DOM for navigation
+- **HTTP Client**: Axios for API communication
+- **Icons**: Lucide React for modern iconography
 
 ## How to Build and Run
 

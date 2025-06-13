@@ -11,7 +11,7 @@ import {
   CreateButton
 } from './HeaderStyles';
 
-export const Header: React.FC = () => {
+export function Header() {
   const dispatch = useAppDispatch();
 
   const handleCreateClick = () => {
@@ -21,9 +21,8 @@ export const Header: React.FC = () => {
   return (
     <HeaderContainer>
       <HeaderContent>
-        <Logo to="/">
-          <LogoIcon>
-            <BookOpen size={24} color="white" />
+        <Logo to="/">          <LogoIcon>
+            <BookOpen size={24} />
           </LogoIcon>
           EduPlayer
         </Logo>

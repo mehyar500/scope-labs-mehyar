@@ -25,9 +25,13 @@ export const fetchComments = createAsyncThunk(
 
 export const createComment = createAsyncThunk(
   'comments/createComment',
-  async (commentData: CreateCommentRequest) => {
-    const response = await api.createComment(commentData);
-    return response;
+  async (commentData: CreateCommentRequest, { rejectWithValue }) => {
+    try {
+      const response = await api.createComment(commentData);
+      return { ...commentData, response };
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Failed to create comment');
+    }
   }
 );
 
@@ -51,6 +55,8 @@ const commentsSlice = createSlice({
       })
       .addCase(fetchComments.fulfilled, (state, action) => {
         state.loading = false;
+        // Replace all comments with fresh data from server
+        // This will remove any temporary comments and show real ones
         state.comments = action.payload;
       })
       .addCase(fetchComments.rejected, (state, action) => {
@@ -64,10 +70,16 @@ const commentsSlice = createSlice({
       })
       .addCase(createComment.fulfilled, (state, action) => {
         state.loading = false;
-        // Add the new comment if it's a Comment object
-        if (typeof action.payload === 'object' && action.payload.id) {
-          state.comments.push(action.payload);
-        }
+        // Create a temporary comment object to show immediately
+        const tempComment: Comment = {
+          id: `temp-${Date.now()}`, // Temporary ID
+          video_id: action.payload.video_id,
+          user_id: action.payload.user_id,
+          content: action.payload.content,
+          created_at: new Date().toISOString(),
+        };
+        // Add the new comment to the beginning of the array for immediate display
+        state.comments.unshift(tempComment);
       })
       .addCase(createComment.rejected, (state, action) => {
         state.loading = false;

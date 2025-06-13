@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { setShowEditModal, setSelectedVideoId } from '../../store/slices/uiSlice';
 import { updateVideo, fetchVideoById } from '../../store/slices/videosSlice';
 import { EditVideoRequest } from '../../types';
+import { getUserId } from '../../utils/environment';
 import {
   ModalOverlay,
   ModalContent,
@@ -24,7 +25,7 @@ import {
 
 import { validateVideoUrl } from '../../utils/videoHelpers';
 
-export const EditVideoModal: React.FC = () => {
+export const EditVideoModal = () => {
   const dispatch = useAppDispatch();
   const { selectedVideoId } = useAppSelector(state => state.ui);
   const { currentVideo, videos, loading } = useAppSelector(state => state.videos);
@@ -45,11 +46,10 @@ export const EditVideoModal: React.FC = () => {
   const videoToEdit = currentVideo?.id === selectedVideoId 
     ? currentVideo 
     : videos.find(v => v.id === selectedVideoId);
-
   useEffect(() => {
     if (selectedVideoId && !videoToEdit) {
       // Fetch the video if not found in current state
-      dispatch(fetchVideoById(selectedVideoId));
+      dispatch(fetchVideoById({ videoId: selectedVideoId, userId: getUserId() }));
     }
   }, [dispatch, selectedVideoId, videoToEdit]);
 
@@ -69,7 +69,6 @@ export const EditVideoModal: React.FC = () => {
     dispatch(setShowEditModal(false));
     dispatch(setSelectedVideoId(null));
   };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -78,7 +77,7 @@ export const EditVideoModal: React.FC = () => {
     }));
     // Clear error when user starts typing
     if (error) setError(null);
-  };  // Using the shared utility for URL validation
+  };
 
   // Check if any field has been changed
   const hasChanges = () => {
@@ -148,8 +147,7 @@ export const EditVideoModal: React.FC = () => {
 
   if (loading && !videoToEdit) {
     return (
-      <ModalOverlay onClick={handleClose}>
-        <ModalContent onClick={(e) => e.stopPropagation()}>
+      <ModalOverlay onClick={handleClose}>        <ModalContent onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}>
           <ModalHeader>
             <ModalTitle>
               <Edit size={24} />
@@ -167,8 +165,7 @@ export const EditVideoModal: React.FC = () => {
 
   if (!videoToEdit) {
     return (
-      <ModalOverlay onClick={handleClose}>
-        <ModalContent onClick={(e) => e.stopPropagation()}>
+      <ModalOverlay onClick={handleClose}>        <ModalContent onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}>
           <ModalHeader>
             <ModalTitle>
               <Edit size={24} />
@@ -191,7 +188,7 @@ export const EditVideoModal: React.FC = () => {
 
   return (
     <ModalOverlay onClick={handleClose}>
-      <ModalContent onClick={(e) => e.stopPropagation()}>
+      <ModalContent onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}>
         <ModalHeader>
           <ModalTitle>
             <Edit size={24} />

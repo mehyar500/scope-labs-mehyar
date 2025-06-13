@@ -23,11 +23,12 @@ import {
 
 import { getUserId } from '../../utils/environment';
 import { getVideoThumbnail } from '../../utils/videoHelpers';
+import { formatDateShort } from '../../utils/errorHelpers';
 
 // Get user ID from environment variables
 const USER_ID = getUserId();
 
-export const VideoList: React.FC = () => {
+export const VideoList = () => {
   const dispatch = useAppDispatch();
   const { videos, loading, error } = useAppSelector((state) => state.videos);
 
@@ -38,13 +39,8 @@ export const VideoList: React.FC = () => {
   const validVideos = videos.filter(video => 
     video.video_url && video.video_url.trim() !== ''
   );
-
   const formatDate = (dateString: string) => {
-    try {
-      return new Date(dateString).toLocaleDateString();
-    } catch {
-      return 'Unknown date';
-    }
+    return formatDateShort(dateString);
   };
 
   if (loading) {
@@ -84,18 +80,17 @@ export const VideoList: React.FC = () => {
               <Link key={video.id} to={`/video/${video.id}`} style={{ textDecoration: 'none' }}>
                 <VideoCard>
                   <VideoThumbnail>
-                    {thumbnail && (
-                      <img 
+                    {thumbnail && (                      <img 
                         src={thumbnail} 
                         alt={video.title}
-                        onError={(e) => {
+                        onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
                           // Fallback to play button if thumbnail fails to load
                           e.currentTarget.style.display = 'none';
                         }}
                       />
                     )}
                     <PlayButton>
-                      <Play size={32} color="#667eea" fill="#667eea" />
+                      <Play size={32} />
                     </PlayButton>
                   </VideoThumbnail>
                 

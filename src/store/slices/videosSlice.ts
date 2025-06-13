@@ -28,17 +28,21 @@ export const fetchVideos = createAsyncThunk(
 
 export const fetchVideoById = createAsyncThunk(
   'videos/fetchVideoById',
-  async (videoId: string) => {
-    const response = await api.getSingleVideo(videoId);
+  async ({ videoId, userId }: { videoId: string; userId: string }) => {
+    const response = await api.getSingleVideo(videoId, userId);
     return response;
   }
 );
 
 export const createVideo = createAsyncThunk(
   'videos/createVideo',
-  async (videoData: CreateVideoRequest) => {
-    const response = await api.createVideo(videoData);
-    return response;
+  async (videoData: CreateVideoRequest, { rejectWithValue }) => {
+    try {
+      const response = await api.createVideo(videoData);
+      return { ...videoData, response };
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Failed to create video');
+    }
   }
 );
 
@@ -70,6 +74,8 @@ const videosSlice = createSlice({
       })
       .addCase(fetchVideos.fulfilled, (state, action) => {
         state.loading = false;
+        // Replace all videos with fresh data from server
+        // This will remove any temporary videos and show real ones
         state.videos = action.payload;
       })
       .addCase(fetchVideos.rejected, (state, action) => {
@@ -96,10 +102,17 @@ const videosSlice = createSlice({
       })
       .addCase(createVideo.fulfilled, (state, action) => {
         state.loading = false;
-        // Add the new video to the list if it's a Video object
-        if (typeof action.payload === 'object' && action.payload.id) {
-          state.videos.unshift(action.payload);
-        }
+        // Create a temporary video object to show immediately
+        const tempVideo: Video = {
+          id: `temp-${Date.now()}`, // Temporary ID
+          user_id: action.payload.user_id,
+          title: action.payload.title,
+          description: action.payload.description,
+          video_url: action.payload.video_url,
+          created_at: new Date().toISOString(),
+        };
+        // Add the new video to the beginning of the array for immediate display
+        state.videos.unshift(tempVideo);
       })
       .addCase(createVideo.rejected, (state, action) => {
         state.loading = false;
