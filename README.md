@@ -82,43 +82,45 @@ This educational video platform is a comprehensive React application designed sp
 
 ## Screenshots of the Platform
 
-*Screenshots will be added to demonstrate the platform's functionality and user interface.*
-
 ### Application Views
 
-1. **Splash Page**
-   - Modern landing page with platform features overview
-   - Call-to-action buttons for getting started
-   - Responsive design showcasing the platform's capabilities
+#### 1. Splash Page
+![Splash Page](screenshots/splash-page.png)
+- Modern landing page with platform features overview
+- Call-to-action buttons for getting started
+- Responsive design showcasing the platform's capabilities
 
-2. **Video List Interface**
-   - Grid layout displaying all available videos
-   - YouTube thumbnail integration for visual appeal
-   - Video metadata including title, description, and creator information
-   - "Create Video" button for adding new content
+#### 2. Video List Interface
+![Video List](screenshots/video-list.png)
+- Grid layout displaying all available videos
+- YouTube thumbnail integration for visual appeal
+- Video metadata including title, description, and creator information
+- "Create Video" button for adding new content
 
-3. **Video Player View**
-   - Full-featured video player with React Player integration
-   - Comments section for user interaction
-   - Video information display (title, description, metadata)
-   - Playback controls with speed and volume adjustment
+#### 3. Video Player View
+![Video Player](screenshots/video-player.png)
+- Full-featured video player with React Player integration
+- Comments section for user interaction
+- Video information display (title, description, metadata)
+- Playback controls with speed and volume adjustment
 
-4. **Create Video Modal**
-   - Clean form interface for adding new educational videos
-   - Input validation and error handling
-   - Support for various video URL formats (YouTube, Vimeo, direct links)
+#### 4. Create Video Modal
+![Create Video](screenshots/create-video.png)
+- Clean form interface for adding new educational videos
+- Input validation and error handling
+- Support for various video URL formats (YouTube, Vimeo, direct links)
 
-5. **Full-Screen Video Mode**
-   - Immersive full-screen video experience
-   - Overlay controls for seamless interaction
-   - Distraction-free learning environment
+#### 5. Full-Screen Video Mode
+![Full Screen](screenshots/fullscreen.png)
+- Immersive full-screen video experience
+- Overlay controls for seamless interaction
+- Distraction-free learning environment
 
-6. **Comments System**
-   - Real-time commenting functionality
-   - User identification for comment attribution
-   - Interactive discussion threads
-
-*Note: Screenshots are being prepared and will be added to the `/screenshots` directory to showcase each of these features in action.*
+#### 6. Comments System
+![Comments](screenshots/comments.png)
+- Real-time commenting functionality
+- User identification for comment attribution
+- Interactive discussion threads
 
 ## Additional Information for Testing
 
