@@ -51,14 +51,17 @@ This educational video platform is a comprehensive React application designed sp
    npm install
    ```
 
-3. **Configure User ID** *(Important)*
-   
-   As specified in the requirements, you need to use your first and last name in snake_case as the user_id. Update the following files:
-   
-   - In `src/components/VideoList/VideoList.tsx` (line 153)
-   - In `src/components/CreateVideoModal/CreateVideoModal.tsx` (line 295)
-   
-   Replace `'mehyar_alkhouri'` with your name in snake_case format (e.g., `'john_smith'`)
+3. **Configure Environment Variables**
+
+   The application uses environment variables for API configuration and user ID.  
+   Copy the example environment file and adjust as needed:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   - Edit `.env` to set your user ID (use your first and last name in snake_case, e.g., `john_smith`) and API base URL if needed.
+   - The default user ID is set as `mehyar_alkhouri` in `.env.example`.
 
 4. **Start the Development Server**
    ```bash
